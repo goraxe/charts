@@ -1,7 +1,7 @@
 {{- if or (eq .Values.controller.kind "DaemonSet") (eq .Values.controller.kind "Both") }}
 {{- $useHostPort := .Values.controller.daemonset.useHostPort -}}
 {{- $hostPorts := .Values.controller.daemonset.hostPorts -}}
-apiVersion: extensions/v1beta1
+apiVersion: apps/v1
 kind: DaemonSet
 metadata:
   labels:
@@ -16,6 +16,14 @@ spec:
   updateStrategy:
 {{ toYaml .Values.controller.updateStrategy | indent 4 }}
   minReadySeconds: {{ .Values.controller.minReadySeconds }}
+  selector:
+    matchLabels:
+      app: {{ template "nginx-ingress.name" . }}
+      component: "{{ .Values.controller.name }}"
+      release: {{ .Release.Name }}
+      {{- if .Values.controller.podLabels }}
+{{ toYaml .Values.controller.podLabels | indent 8}}
+      {{- end }}
   template:
     metadata:
       {{- if .Values.controller.podAnnotations }}
